@@ -1,0 +1,33 @@
+% GDFTRealTest.m
+%
+% demonstrates the use of GDFTRealCmplx() and GDFTRealCmplx()
+% in combination with ModifyPrototype() and MakeTDL().
+%
+% S Weiss, Univ. of Southampton, 21/1/2001
+
+% prototype filter and parameters
+%p = filter16_14_448;
+K = 128; N = 14; Lp = 448;
+p=IterLsDesign(Lp,K,N);
+p_mod = ModifyPrototype(p,K);
+
+% real valued input signal
+Lx = 2*Lp;
+x = randn(1,Lx);
+
+% initialisation of output TDL for GDFTSynCmplx() 
+y_tdl = zeros(1,Lp);
+
+% iteration for analysis and synthesis operations
+for k = 1:N:Lx,
+   U = MakeTDL(x,k,Lp);											% extract TDL
+   X = GDFTAnaReal(U,K,p_mod);								% analysis
+   [y(k:k+N-1) y_tdl] = GDFTSynReal(X,N,p_mod,y_tdl);	% synthesis
+end;  
+
+% display of I/O to cascaded analysis and synthesis filter bank
+clf; 
+plot(x(1:end-Lp+1)); hold on; plot(y(Lp:end),'r:'); hold off;
+legend('FiBa input','delayed FiBa output');
+ylabel('input, output'); title('I/O for real valued GDFT OSFB');
+xlabel('time [fullband sampling periods]');

@@ -1,0 +1,11 @@
+#JSGF V1.0;
+
+grammar chime;
+
+public <sentence> = <verb> <colour> <prep> <letter> <number> <coda>;
+<verb> = BIN|LAY|PLACE|SET;
+<colour> = BLUE|GREEN|RED|WHITE;
+<prep> = AT|BY|IN|WITH;                                     
+<letter> = A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|X|Y|Z;
+<number> = ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE;
+<coda> = AGAIN|NOW|PLEASE|SOON;
