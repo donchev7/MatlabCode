@@ -50,7 +50,7 @@ function cfg = BF_Array_Geometry(cfg)
                                 cfg.idx_hrtfs = (1:9);
                         end                         
                 end
-            else
+            else %uniform spacing automatically
                 % initialisation of sensor positions
                 cfg.mic_pos.x = linspace(-(cfg.N - 1)/2,(cfg.N - 1)/2,cfg.N)*cfg.spacing; 
                 cfg.mic_pos.y = zeros(size(cfg.mic_pos.x));
@@ -147,6 +147,7 @@ function cfg = BF_Array_Geometry(cfg)
                             %and current microphone with respect to all source positions
                             k_vec = - cfg.k_range_ext(idx_frequency) * [sind(cfg.angular_resolution.elevation).*cosd(cfg.angular_resolution.azimuth); sind(cfg.angular_resolution.elevation).*sind(cfg.angular_resolution.azimuth); cosd(cfg.angular_resolution.elevation)];
                             %save steering vectors in cfg.G_ext
+                            % same as D(f,æ) eq. 30 Mic. Arrays tut
                             cfg.G_ext(idx_frequency,:,idx_micPos) = exp(-1i*k_vec.'*x_mic);
                         end
                         %                 end

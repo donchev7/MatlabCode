@@ -23,14 +23,9 @@ addpath(genpath('Generalized_RLSFI_BF'));
 cfg.design = 'freefield';
 % cfg.design = 'hrtf';
 cfg.wng_limit_db = -15;
-cfg.look_azimuth = 45; %azimuth angle
+cfg.look_azimuth = 90; %azimuth angle
 cfg.look_elevation = repmat(90 - atand(0.73/1.1), length(cfg.look_azimuth)); %elevation
-cfg.nsrc = 2;       % Number of sources
-cfg.nmic = 5;       % Number of mics
-%             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 9 29]; %position of sources, interferers at 40° and 140°
-%             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 10 32]; %position of sources, interferers at 45° and 155°
-cfg.position = [1 10 22]; %position of sources, interferers at 45° and 105°
-        
+
 %------------------------------------------------------------------
 % Set Acoustical scenario parameters (parameters are stored in cfg
 % structure
@@ -53,8 +48,7 @@ cfg.position = [1 10 22]; %position of sources, interferers at 45° and 105°
 % beamformer output signal
 %------------------------------------------------------------------
 sig.y = zeros(length(sig.x)+length(flt.w)-1,1);
-% ySrc = number of source signals filtered with w - signal at beamer output
-% sigu = both sources mixed and filtered with w - signal at beamer output
+% ySrc source signal after filtered with w
 sig.ySrc = zeros(length(sig.x)+length(flt.w)-1,cfg.nsrc); 
 for idx_channels = 1:cfg.nmic
     sig.y  = sig.y + fftfilt(flt.w(:,idx_channels),[sig.x(:,idx_channels); zeros(length(flt.w)-1,1)]);

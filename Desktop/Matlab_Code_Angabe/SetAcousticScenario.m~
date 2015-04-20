@@ -129,7 +129,10 @@ switch cfg.input_type
         % ---------------------------------------------------------
         cfg.theta_vec=(0:5:355);
         %define source positions            
-
+        %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 9 29]; %position of sources, interferers at 40° and 140°
+        %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 10 32]; %position of sources, interferers at 45° and 155°
+        cfg.position = [1 37 22]; %position of sources, interferers at 45° and 105°
+        
         %define microphone channels
         switch cfg.nmic
             case 3

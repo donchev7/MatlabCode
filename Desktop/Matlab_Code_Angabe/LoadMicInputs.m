@@ -68,19 +68,23 @@ elseif strcmp(cfg.RIRtype, 'measured')
             cfg.sig_len = length(s)/cfg.fs;
         end
         %normalize to amplitude 1
+        %why normalize to amplitude 1?
         s(:,q) = s(:,q)/(1.1*max(abs(s(:,q))));
     end
     
     % Get inputs of equal power
+    %why? because if one speaker speakes louder we cant judge the
+    %peroformance of the interference cancellation
     s = s./repmat(sqrt(var(s)/min(var(s))),size(s,1),1);
     
     % Apply a gain on the source signals
-    if length(find(cfg.srcgain~=1))>0
-%         fprintf('\t* Apply a gain on the source signals\n');
-        for q = 1:cfg.nsrc
-            s(:,q) = s(:,q)*cfg.srcgain(q);
-        end
-    end
+    % BOBBY - distorts the signal!!
+%     if length(find(cfg.srcgain~=1))>0
+% %         fprintf('\t* Apply a gain on the source signals\n');
+%         for q = 1:cfg.nsrc
+%             s(:,q) = s(:,q)*cfg.srcgain(q);
+%         end
+%     end
     
     % Convolve with impulse responses
 %     fprintf('\t* Position the sources...\n')
@@ -105,6 +109,7 @@ elseif strcmp(cfg.RIRtype, 'measured')
     end
     %normalize impulse responses to absolut maximum of all required impulse
     %responses from desired source direction
+    %    
     h = h/max(max(abs(h(:,cfg.position(1),:))));    
     
     xsrc = zeros(size(s,1)+cfg.endIR-1,cfg.nmic,cfg.nsrc); % structure: xsrc(samples,mics,#speaker)
