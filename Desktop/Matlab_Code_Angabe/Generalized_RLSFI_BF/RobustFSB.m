@@ -126,6 +126,7 @@ function [fir_imp_resp, G_plot, resp, faxis, angaxis, realWNG_dB] = ...
 		tmp3 = [];    
         % calculation of G_D at frequency \omega_p of dimension [theta_resolution,Num_mics*(P+1)]
         for idx_look_dir = 1:cfg.nmbr_look_dir 
+            %cfg.G_ext = steering vector
 	        G_D(idx_frequency,idx_look_dir,:,:) = squeeze(cfg.G_ext(idx_frequency,:,:,idx_look_dir))*...
                 squeeze(cfg.D(idx_look_dir,:,:));
         	% concatenating of matrices along first dimension ->

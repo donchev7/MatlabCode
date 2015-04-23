@@ -1,4 +1,8 @@
 function X_out=DFTAnaRealEntireSignal(x_in,K,N,p)
+% x_in - signal input
+% K - length(K_WaveVector)
+% N - windows size / bandwidth cfg.fs * 0.02; %20ms window
+% p - frequenci_range ?
 Lp = length(p);
 Lx = length(x_in);
 dim = size(x_in);
@@ -14,4 +18,5 @@ x_buffer = x_buffer(Lp:-1:1,1:n_blocks);
 U = reshape(bsxfun(@times, x_buffer, p.'),K,ceil(Lp/K),n_blocks);
 
 V = squeeze(fft(sum(U,2),[],1));
-X_out = V(1:K/2+1,:);
+X_out =V;
+%X_out = V(1:K/2+1,:);

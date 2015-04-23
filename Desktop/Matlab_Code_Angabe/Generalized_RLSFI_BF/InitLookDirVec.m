@@ -13,11 +13,11 @@ function [cfg] = InitLookDirVec(cfg)
             % number of protype look directions, and
             % d_{i}=[D_{i}^{0}...D_{i}^{P}]^{T} includes all interpolation 
             % values D (interpolation factors for each filter-ans-sum unit)
-            d = zeros(cfg.nmbr_look_dir,cfg.P+1); 
+            %d = zeros(cfg.nmbr_look_dir,cfg.P+1); 
             p = 0:cfg.P;
             for idx_look_dir=1:cfg.nmbr_look_dir
-                cfg.d(idx_look_dir,:)=cfg.D_i(idx_look_dir).^p; % cfg.D_i: corresponding D for each look direction; D = (cfg.DesAng - 90)/90 for linear array and
-                                                                % D = (cfg.DesAng - pi/cfg.N)/(pi/cfg.N) for circular array
+                cfg.d(idx_look_dir,:)=cfg.D_i(idx_look_dir).^p; % cfg.D_i: corresponding D for each look direction; D_i = (cfg.DesAng - 90)/90 for linear array and
+                %cfg.d = cfg.D_i,cfg.nmbr_look_dir=1 cfg.P=0         % D = (cfg.DesAng - pi/cfg.N)/(pi/cfg.N) for circular array
             end
 
         case 2 %not implemented yet

@@ -139,7 +139,7 @@ switch cfg.noise_type
         xnoise = zeros(size(x));
     
     case 1 % Add white noise to mic
-        
+        %cfg.inputsnr defined in SetAcousticScenario.m
         fprintf('\t* Add some white noise with SNR %d dB\n',cfg.inputsnr);
         
         xnoise = 2*rand(size(x))-1;

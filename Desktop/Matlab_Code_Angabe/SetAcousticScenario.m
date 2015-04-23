@@ -158,7 +158,7 @@ cfg.sig_len = 10;    % Choose 0 if the whole signal should be used (if ASR score
 cfg.activity = [0; 0; 0; 0; 0]; 
 
 % Add some noise
-cfg.noise_type = 0;
+%cfg.noise_type = 0;
     % 0 = no noise
     % 1 = white noise
     % 2 = noise from files

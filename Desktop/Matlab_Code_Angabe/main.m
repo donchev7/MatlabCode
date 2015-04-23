@@ -29,8 +29,16 @@ cfg.nsrc = 2;       % Number of sources
 cfg.nmic = 5;       % Number of mics
 %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 9 29]; %position of sources, interferers at 40° and 140°
 %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 10 32]; %position of sources, interferers at 45° and 155°
-cfg.position = [1 10 22]; %position of sources, interferers at 45° and 105°
-        
+cfg.position = [10 46 22]; %position of sources, interferers at 45° and 105°
+%source must be first defined and than interferer e.x. cfg.position(1) must
+%be the desired source
+cfg.noise_type = 0;
+% noise implemented in SetAcousticScenario.m
+    % 0 = no noise
+    % 1 = white noise
+    % 2 = noise from files
+    % 3 = generated diffuse noise
+    
 %------------------------------------------------------------------
 % Set Acoustical scenario parameters (parameters are stored in cfg
 % structure
@@ -42,7 +50,8 @@ cfg.position = [1 10 22]; %position of sources, interferers at 45° and 105°
 % flt structure
 %------------------------------------------------------------------
 [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
- 
+cfg.K = cfg.fs * 0.02; %20ms window
+ %cfg.K = 
 %------------------------------------------------------------------
 %perform beamformer design (of robust FSB)
 %------------------------------------------------------------------
