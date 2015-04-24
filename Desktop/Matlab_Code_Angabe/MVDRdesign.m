@@ -28,8 +28,9 @@ H=100;
 win = window(@hamming,N);
 %S [freqx  time nmic] matrix
 for idx_mic=1:cfg.nmic
-    [S(:,:,idx_mic) F(:,:,idx_mic) T(:,:,idx_mic)] = spectrogram(sig.x(:,idx_mic),win,N-H,length(win),cfg.fs);
-    [U(:,:,idx_mic) UF(:,:,idx_mic) UT(:,:,idx_mic)] = spectrogram(sig.xSrc(:,idx_mic,2),win,N-H,length(win),cfg.fs);
+    %[S(:,:,idx_mic) F(:,:,idx_mic) T(:,:,idx_mic)] = spectrogram(sig.x(:,idx_mic),win,N-H,length(win),cfg.fs);
+    S(:,:,idx_mic) = STFTana(sig.x(:,idx_mic),64,win);
+    %[U(:,:,idx_mic) UF(:,:,idx_mic) UT(:,:,idx_mic)] = spectrogram(sig.xSrc(:,idx_mic,2),win,N-H,length(win),cfg.fs);
 end
 %Fcoef = (1:1:size(S,1))*cfg.fs/N;
 %Tcoef = (1:1:size(S,2))*H/cfg.fs;

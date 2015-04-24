@@ -50,8 +50,7 @@ cfg.noise_type = 0;
 % flt structure
 %------------------------------------------------------------------
 [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
-cfg.K = cfg.fs * 0.02; %20ms window
- %cfg.K = 
+
 %------------------------------------------------------------------
 %perform beamformer design (of robust FSB)
 %------------------------------------------------------------------
@@ -64,15 +63,15 @@ cfg.K = cfg.fs * 0.02; %20ms window
 sig.y = zeros(length(sig.x)+length(flt.w)-1,1);
 % ySrc = number of source signals filtered with w - signal at beamer output
 % sigu = both sources mixed and filtered with w - signal at beamer output
-sig.ySrc = zeros(length(sig.x)+length(flt.w)-1,cfg.nsrc); 
-for idx_channels = 1:cfg.nmic
-    sig.y  = sig.y + fftfilt(flt.w(:,idx_channels),[sig.x(:,idx_channels); zeros(length(flt.w)-1,1)]);
-    
-    for idx_sources = 1:cfg.nsrc
-        sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(flt.w(:,idx_channels), ...
-            [sig.xSrc(:,idx_channels,idx_sources); zeros(length(flt.w)-1,1)]);
-    end
-end
+% sig.ySrc = zeros(length(sig.x)+length(flt.w)-1,cfg.nsrc); 
+% for idx_channels = 1:cfg.nmic
+%     sig.y  = sig.y + fftfilt(flt.w(:,idx_channels),[sig.x(:,idx_channels); zeros(length(flt.w)-1,1)]);
+%     
+%     for idx_sources = 1:cfg.nsrc
+%         sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(flt.w(:,idx_channels), ...
+%             [sig.xSrc(:,idx_channels,idx_sources); zeros(length(flt.w)-1,1)]);
+%     end
+% end
 % 
 % %------------------------------------------------------------------
 % % Potential place for postfilter

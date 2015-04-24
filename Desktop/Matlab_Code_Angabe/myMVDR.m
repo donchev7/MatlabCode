@@ -1,4 +1,4 @@
-function [sig W] = myMVDR(cfg, sig)
+function [sig, W] = myMVDR(cfg, sig)
 %MYMVDR performs beamforming using the classical MVDR beamformer
 % Input parameters:
 %   * sig:  struct containing the source and microphone signal(s)
@@ -8,6 +8,17 @@ function [sig W] = myMVDR(cfg, sig)
 %   * sig:  struct that will also contain the output signal
 %   * W:    matrix containing beamforming coefficients for each subband
 
+cfg.mic_pos.x = [-7.5e-2 -3.375e-2 0 3.375e-2 7.5e-2];
+cfg.mic_pos.y = [-6e-2 -0.75e-2 0 -0.75e-2 -6e-2];
+cfg.mic_pos.z = [-4e-2 0 0 0 -4e-2]; 
+cfg.frange = 0:250:8000;
+cfg.c = 343; %speed of sound in air
+cfg.k_range = 2*pi*cfg.frange/cfg.c;
+cfg.K = 64; %number of channels or bands
+cfg.N = 16; %decimation ratio
+Lp = 128; %length of prototype filter
+
+cfg.p=IterLSDesign(Lp,cfg.K,cfg.N);
 %--------------------------------------------------------------------------
 %create input data blocks and create subbands
 %--------------------------------------------------------------------------
@@ -61,9 +72,9 @@ for idx_nu = 1:size(X,1)
     switch cfg.design
         case 'freefield'
             %create wavevector according to van Trees (2.25)
-            kvec = - cfg.k_range(idx_nu) * [sind(cfg.look_dir.theta)*cosd(cfg.look_dir.phi);...
-                sind(cfg.look_dir.theta)*sind(cfg.look_dir.phi);...
-                cosd(cfg.look_dir.theta)];
+            kvec = - cfg.k_range(idx_nu) * [sind(cfg.look_elevation)*cosd(cfg.look_azimuth);...
+                sind(cfg.look_elevation)*sind(cfg.look_azimuth);...
+                cosd(cfg.look_elevation)];
             %create steering vector according to van Trees (2.28) for all
             %microphone positions
             v_k = exp(-1i*kvec.'*[cfg.mic_pos.x; cfg.mic_pos.y; cfg.mic_pos.z]).';
@@ -99,5 +110,4 @@ sig.y = y;
 sig.y_des = y_des;
 sig.y_int = y_int;
 %--------------------------------------------------------------------------
-
 end
