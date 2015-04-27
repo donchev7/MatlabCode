@@ -54,13 +54,13 @@ cfg.noise_type = 0;
 %------------------------------------------------------------------
 %perform beamformer design (of robust FSB)
 %------------------------------------------------------------------
- flt.w = main_robust_FSB(cfg, cfg.look_azimuth, cfg.look_elevation, cfg.design, cfg.wng_limit_db);
+ %flt.w = main_robust_FSB(cfg, cfg.look_azimuth, cfg.look_elevation, cfg.design, cfg.wng_limit_db);
 
 %------------------------------------------------------------------
 % Create microphone signals (signals are stored in sig structure) at
 % beamformer output signal
 %------------------------------------------------------------------
-sig.y = zeros(length(sig.x)+length(flt.w)-1,1);
+%sig.y = zeros(length(sig.x)+length(flt.w)-1,1);
 % ySrc = number of source signals filtered with w - signal at beamer output
 % sigu = both sources mixed and filtered with w - signal at beamer output
 % sig.ySrc = zeros(length(sig.x)+length(flt.w)-1,cfg.nsrc); 

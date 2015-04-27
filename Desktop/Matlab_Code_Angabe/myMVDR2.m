@@ -1,4 +1,4 @@
-function [sig, W] = myMVDR(cfg, sig)
+function [sig, W] = myMVDR2(cfg, sig)
 %MYMVDR performs beamforming using the classical MVDR beamformer
 % Input parameters:
 %   * sig:  struct containing the source and microphone signal(s)
@@ -18,7 +18,7 @@ cfg.K = 512; % FFT size
 cfg.N = 128; % frame shift
 cfg.Lp = 1024; % prototype filter length
 %p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
-cfg.p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
+%cfg.p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
 %cfg.frange = 0:250:8000;
 cfg.frange = linspace(0,cfg.fs/2,cfg.K/2+1)'; % frequency axis
 cfg.k_range = 2*pi*cfg.frange/cfg.c;
@@ -28,15 +28,18 @@ cfg.k_range = 2*pi*cfg.frange/cfg.c;
 for idx_mic = 1:cfg.nmic    
     %get the frequency subbands for each block -> X of dimension (#subbands, #blocks, #microphones)
     %of microphone data
-    X(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.x(:,idx_mic),cfg.K,cfg.N,cfg.p);
+    %X(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.x(:,idx_mic),cfg.K,cfg.N,cfg.p);
+    [X(:,:,idx_mic), F, T] = stft(sig.x(:,idx_mic),512,128,512,cfg.fs);
     %of desired signal components
-    X_des(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.xSrc(:,idx_mic,1),cfg.K,cfg.N,cfg.p);
+    %X_des(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.xSrc(:,idx_mic,1),cfg.K,cfg.N,cfg.p);
+    X_des(:,:,idx_mic) = stft(sig.xSrc(:,idx_mic,1),512,128,512,cfg.fs);
     %of interference+noise
     if cfg.noise_type
         X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3)...
             +sig.xnoise(:,idx_mic), cfg.K,cfg.N,cfg.p);
     else
-        X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3),cfg.K,cfg.N,cfg.p);
+        %X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3),cfg.K,cfg.N,cfg.p);
+        X_int(:,:,idx_mic) = stft(sum(sig.xSrc(:,idx_mic,2:end),3),512,128,512,cfg.fs);
     end
 end
 
@@ -102,9 +105,9 @@ for idx_nu = 1:size(X,1)
 end %for idx_nu
 
 %create time-domain output signal
-y = DFTSynRealEntireSignal(Y, cfg.K, cfg.N, cfg.p);
-y_des = DFTSynRealEntireSignal(Y_des, cfg.K, cfg.N, cfg.p);
-y_int = DFTSynRealEntireSignal(Y_int, cfg.K, cfg.N, cfg.p);
+y = istft(Y, 128, 512, cfg.fs);
+y_des = istft(Y_des, 128, 512, cfg.fs);
+y_int = istft(Y_int, 128, 512, cfg.fs);
 
 %--------------------------------------------------------------------------
 %Set output signal y
