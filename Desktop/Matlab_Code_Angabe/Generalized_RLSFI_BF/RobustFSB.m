@@ -32,7 +32,7 @@
 %
 % Edwin Mabande, Erlangen 01.11 
 
-function [fir_imp_resp, G_plot, resp, faxis, angaxis, realWNG_dB] = ...
+function [fir_imp_resp, G_plot, resp, realWNG_dB] = ...
     RobustFSB(N,spacing,WNG_dB,P,int_choice,norm_choice,geometry, des_look_dir, design)
 
     if nargin ~= 9,
@@ -293,7 +293,7 @@ function [fir_imp_resp, G_plot, resp, faxis, angaxis, realWNG_dB] = ...
     filt_real= zeros(cfg.N*(cfg.P+1),size(flt.w_opt,2));
     for idx_filter=1:cfg.N*(cfg.P+1)
         %compute frequency response of approximated FIR filters
-        H  = freqz( tmp_firfilt(idx_filter,:), 1, cfg.srate/2+1 );
+        H  = freqz( flt.w_opt(idx_filter,:), 1, cfg.srate/2+1 );
         %store compute frequency response of approximated FIR filters in
         %filt_real, one filter in each row
         filt_real(idx_filter,:) = H(cfg.frange_ext);
@@ -339,18 +339,16 @@ function [fir_imp_resp, G_plot, resp, faxis, angaxis, realWNG_dB] = ...
     %                           Set return values                         %
     %----------------------------------------------------------------------
     % Filter impulse response of approximated FIR filters
-    fir_imp_resp = tmp_firfilt.';
+    %fir_imp_resp = tmp_firfilt.';
+    fir_imp_resp = flt.w_opt;
     %Matrix of steering vectors for look direction for which the beampattern has been plotted
     G_plot = cfg.G_plot;
     %Magnitude of the beamformer response
     resp = cfg.BF_response_abs;        
     % Frequency bins used for the plots
-    faxis = cfg.frange(:);    
+    faxis = cfg.frange_ext(:);    
     % Angles used for the plots
     angaxis = cfg.DOA_degs_plot(:);
     % Resulting WNG of designed beamformer in dB
     realWNG_dB = cfg.WNG_real(:);
 end
-
-
-

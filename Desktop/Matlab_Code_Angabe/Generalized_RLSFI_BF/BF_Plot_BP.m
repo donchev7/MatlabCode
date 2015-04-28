@@ -17,6 +17,7 @@ function cfg = BF_Plot_BP(cfg)
             % -> dimension of cfg.PBF_firfilt: [(P+1) x filter length x
             % #Microphones]
             H  = freqz(squeeze(cfg.PBF_firfilt(i_PBF_firfilt,:,i_mics)), 1, cfg.srate/2+1);    
+            %H  = freqz(squeeze(cfg.w_opt(i_mics,:)), 1, cfg.srate/2+1);    
             %save frequency respones in filt_real
             %here H(cfg.frange), since we only want to plot the beampattern
             % in the 'original frequency range', not the extended range
@@ -131,7 +132,8 @@ function cfg = BF_Plot_BP(cfg)
     cfg.BPattern = BPattern;
     cfg.BF_response_abs = BF_response_abs;
     
-    if 0
+    b=0;
+    if b==0
         % ---------------------------------------------------------------------
         %plot beampattern (created from approximated FIR filters)
         figure

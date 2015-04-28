@@ -21,10 +21,14 @@ addpath(genpath('filterbank'));
 addpath(genpath('Generalized_RLSFI_BF'));
 % 
 cfg.design = 'freefield';
+cfg.geometry = 1; %linear array
+cfg.spacing = 0; % 0 = non-uniform array, 1=uniform array;
 % cfg.design = 'hrtf';
 cfg.wng_limit_db = -15;
 cfg.look_azimuth = 45; %azimuth angle
 cfg.look_elevation = repmat(90 - atand(0.73/1.1), length(cfg.look_azimuth)); %elevation
+cfg.des_look_dir.azimuth = cfg.look_azimuth;
+cfg.des_look_dir.elevation = cfg.look_elevation;
 cfg.nsrc = 2;       % Number of sources
 cfg.nmic = 5;       % Number of mics
 %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 9 29]; %position of sources, interferers at 40° and 140°
@@ -52,27 +56,65 @@ cfg.noise_type = 0;
 [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
 
 %------------------------------------------------------------------
+%% filterbank initialization
+cfg.c = 342; %speed of sound in air
+cfg.K = 512; % FFT size
+cfg.N = 128; % frame shift
+%cfg.Lp = 1024; % prototype filter length
+%p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
+%cfg.p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
+%cfg.frange = 0:250:8000;
+cfg.frange = linspace(0,cfg.fs/2,cfg.K/2+1)'; % frequency axis
+cfg.k_range = 2*pi*cfg.frange/cfg.c;
+cfg.angRange.azimuth = 0:5:180;
+cfg.angRange.elevation = repmat(cfg.look_elevation,size(cfg.angRange.azimuth));
+
+%------------------------------------------------------------------
+
+%------------------------------------------------------------------
 %perform beamformer design (of robust FSB)
 %------------------------------------------------------------------
- %flt.w = main_robust_FSB(cfg, cfg.look_azimuth, cfg.look_elevation, cfg.design, cfg.wng_limit_db);
+[flt.w.RFSB, cfg, steerV2, realWNG_dB] = RobustFSBdes(cfg);
+flt.w.MVDR = myMVDR2(cfg,sig);
+
+steerV = steeringVector(cfg);
+for idx_freq=1:length(cfg.frange)
+    BPatternRFSB(idx_freq,:) = mag2db(abs(squeeze(steerV(idx_freq,:,:))*flt.w.RFSB(:,idx_freq)));
+end
+for idx_freq=1:length(cfg.frange)
+    BPatternMVDR(idx_freq,:) = mag2db(abs(squeeze(steerV(idx_freq,:,:))*flt.w.MVDR(:,idx_freq)));
+end
+figure
+subplot(1,2,1);
+imagesc(cfg.angRange.azimuth,cfg.frange,BPatternMVDR)
+xlabel('DOA in degrees')
+ylabel('Frequency in Hz')
+title('Beampattern MVDR')
+colorbar
+
+subplot(1,2,2);
+imagesc(cfg.angRange.azimuth,cfg.frange,BPatternRFSB)
+xlabel('DOA in degrees')
+ylabel('Frequency in Hz')
+title('Beampattern RFSB')
+colorbar
+
 
 %------------------------------------------------------------------
 % Create microphone signals (signals are stored in sig structure) at
 % beamformer output signal
 %------------------------------------------------------------------
-%sig.y = zeros(length(sig.x)+length(flt.w)-1,1);
-% ySrc = number of source signals filtered with w - signal at beamer output
-% sigu = both sources mixed and filtered with w - signal at beamer output
-% sig.ySrc = zeros(length(sig.x)+length(flt.w)-1,cfg.nsrc); 
-% for idx_channels = 1:cfg.nmic
-%     sig.y  = sig.y + fftfilt(flt.w(:,idx_channels),[sig.x(:,idx_channels); zeros(length(flt.w)-1,1)]);
-%     
-%     for idx_sources = 1:cfg.nsrc
-%         sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(flt.w(:,idx_channels), ...
-%             [sig.xSrc(:,idx_channels,idx_sources); zeros(length(flt.w)-1,1)]);
-%     end
-% end
-% 
+rown = ceil((1+cfg.K)/2);            % calculate the total number of rows
+coln = 1+fix((length(sig.x(:,1)-cfg.K)/cfg.N));   
+for idx_mic=1:cfg.nmic
+ X(:,:,idx_mic) = stft(sig.x(:,idx_mic),cfg.K,cfg.N,cfg.K,cfg.fs);
+end
+for idx_freq=1:length(cfg.frange) 
+Y(idx_freq,:) = flt.w.RFSB(:,idx_freq)'*squeeze(X(idx_freq,:,:)).';
+end
+sig.y.RFSB = istft(Y, cfg.N, cfg.K, cfg.fs);
+
+
 % %------------------------------------------------------------------
 % % Potential place for postfilter
 % %------------------------------------------------------------------
