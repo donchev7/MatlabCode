@@ -89,6 +89,7 @@ elseif strcmp(cfg.RIRtype, 'measured')
     % Convolve with impulse responses
 %     fprintf('\t* Position the sources...\n')
     load(cfg.path_imp_resp);
+    cfg.imp_response = imp_resp;
     if exist('fs_RIR')
         if cfg.fs~=fs_RIR
             imp_resp_tmp = imp_resp;

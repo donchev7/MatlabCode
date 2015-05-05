@@ -11,6 +11,7 @@ function [sig, W] = myMVDR2(cfg, sig)
 %--------------------------------------------------------------------------
 %create input data blocks and create subbands
 %--------------------------------------------------------------------------
+
 for idx_mic = 1:cfg.nmic    
     %get the frequency subbands for each block -> X of dimension (#subbands, #blocks, #microphones)
     %of microphone data
@@ -19,6 +20,8 @@ for idx_mic = 1:cfg.nmic
     %of desired signal components
     %X_des(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.xSrc(:,idx_mic,1),cfg.K,cfg.N,cfg.p);
     X_des(:,:,idx_mic) = stft(sig.xSrc(:,idx_mic,1),cfg.K,cfg.N,cfg.K,cfg.fs);
+    lds_prev = zeros(length(cfg.frange),size(X,2));
+    Pxx(:,:,idx_mic) = welch_est(lds_prev,X(:,:,idx_mic),X(:,:,idx_mic),0.76);
     %of interference+noise
     if cfg.noise_type
         %X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3)...
@@ -31,20 +34,26 @@ for idx_mic = 1:cfg.nmic
         X_int(:,:,idx_mic) = stft(sum(sig.xSrc(:,idx_mic,2:end),3),cfg.K,cfg.N,cfg.K,cfg.fs);
     end
 end
-
 %--------------------------------------------------------------------------
 %estimate spectral cross correlation matrix for each subband
 %--------------------------------------------------------------------------
-Pxx = zeros(size(X_des,3),size(X_des,3),size(X_des,1));
+%Pxx = zeros(size(X_des,3),size(X_des,3),size(X_des,1));
 %easier case ->Y consider only noise components
-% for idx_nu = 1:size(X_des,1)
-%     Pxx(:,:,idx_nu) = cov(squeeze(X_int(idx_nu,:,:)));
-% end
-for idx_nu = 1:size(X_des,1)
-    Pxx(:,:,idx_nu) = cov(squeeze(X(idx_nu,:,:)));
+for idx_nu = 1:size(cfg.iso2,1)
+    Cnn2(:,:,idx_nu) = cov(squeeze(cfg.iso2(idx_nu,:,:)));
+    %Thi_Y(:,:,idx_nu) = cov(squeeze(Pxx(idx_nu,:,:)));
+    Thi_Y(:,:,idx_nu) = cov(squeeze(X(idx_nu,:,:)));
 end
-Pxx = Pxx./size(X,2);
-
+Cnn2 = Cnn2./size(cfg.iso2,2);
+Cnn = cfg.iso2;
+% for idx_nu = 1:size(X_des,1)
+%     Pxx(:,:,idx_nu) = cov(squeeze(X(idx_nu,:,:)));
+% end
+% Pxx = Pxx./size(X,2);
+% for idx_mic=1:cfg.nmic
+%     iso2(:,:,idx_mic) = besselj(0,(2*cfg.frange*cfg.micSpacing(idx_mic,:))/cfg.c);
+% end
+% iso2=iso2./size(iso2,2);
 
 %load hrtfs if required
 if strcmp(cfg.design,'hrtf')
@@ -85,11 +94,21 @@ for idx_nu = 1:size(X,1)
     %Array Processing
     rho = 0;%0.00001; %regularization constant for diagonal loading
     %estimate filter coefficients
-    W(:,idx_nu) = ((v_k'*inv(Pxx(:,:,idx_nu)+rho*eye(cfg.nmic))) / ...
-        (v_k'*inv(Pxx(:,:,idx_nu)+rho*eye(cfg.nmic))*v_k)).';
+    mue = 10^(-20/10);
+    Gamma_const = tril(squeeze(Cnn(idx_nu,:,:)),-1)./(1+mue) + diag(diag(squeeze(Cnn(idx_nu,:,:)))) + ...
+        triu(squeeze(Cnn(idx_nu,:,:)),1)./(1+mue);
+    W(:,idx_nu) = (inv(Gamma_const)*v_k) / ...
+        (v_k'*inv(Gamma_const)*v_k);
+    
+    V(:,idx_nu) = 1/(cfg.nmic-1) * trace((eye(cfg.nmic,cfg.nmic)-v_k*W(:,idx_nu)')*Thi_Y(:,:,idx_nu)*inv(Gamma_const));
+    
+    S(:,idx_nu) = W(:,idx_nu)'*(Thi_Y(:,:,idx_nu)-V(:,idx_nu)*Gamma_const)*W(:,idx_nu);
+    
+    Wmwf(:,idx_nu) = (S(:,idx_nu)/(S(:,idx_nu)+(V(:,idx_nu)*inv(v_k'*inv(Gamma_const)*v_k))))*...
+        W(:,idx_nu);
     
     %perform beamforming frequency-band-wise
-    Y(idx_nu,:) = W(:,idx_nu)'*squeeze(X(idx_nu,:,:)).';
+    Y(idx_nu,:) = Wmwf(:,idx_nu)'*squeeze(X(idx_nu,:,:)).';
     Y_des(idx_nu,:) = W(:,idx_nu)'*squeeze(X_des(idx_nu,:,:)).';
     Y_int(idx_nu,:) = W(:,idx_nu)'*squeeze(X_int(idx_nu,:,:)).';
 end %for idx_nu
@@ -102,7 +121,7 @@ y_int = istft(Y_int, cfg.N, cfg.K, cfg.fs);
 %--------------------------------------------------------------------------
 %Set output signal y
 %--------------------------------------------------------------------------
-sig.y.MVDR = y;
+sig.y.mwf = y;
 sig.y_des = y_des;
 sig.y_int = y_int;
 

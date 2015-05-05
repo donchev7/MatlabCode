@@ -53,7 +53,7 @@ if strcmp(cfg.RIRtype, 'synthetic')
 %     cfg.synth_room.sloc_cart = zeros(size(cfg.synth_room.sloc, 1), 3);
     
 elseif strcmp(cfg.RIRtype, 'measured')
-    cfg.RIRcond = 'NAO190_1m'; %NAO190_1m -> 190ms,1m, NAO190_2m -> 190ms,2m, NAO190_4m -> 190ms,4m 
+    cfg.RIRcond = 'NAO600_4m'; %NAO190_1m -> 190ms,1m, NAO190_2m -> 190ms,2m, NAO190_4m -> 190ms,4m 
                                 %NAO600_1m -> 600ms,1m, NAO600_2m -> 600ms,2m, NAO600_4m -> 600ms,4m
 else
     error('Invalid choice of the variable cfg.RIRtype\n'); 
