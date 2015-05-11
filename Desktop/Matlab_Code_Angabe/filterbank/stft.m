@@ -1,10 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%              Short-Time Fourier Transform            %
-%               with MATLAB Implementation             %
-%                                                      %
-% Author: M.Sc. Eng. Hristo Zhivomirov       12/21/13  %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function [stft, f, t] = stft(x, wlen, h, nfft, fs)
 
 % function: [stft, t, f] = mystftfun(x, fs, wlen, h, nfft)

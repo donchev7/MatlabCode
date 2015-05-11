@@ -1,10 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%          Inverse Short-Time Fourier Transform        %
-%               with MATLAB Implementation             %
-%                                                      %
-% Author: M.Sc. Eng. Hristo Zhivomirov       12/26/13  %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function [x, t] = istft(stft, h, nfft, fs)
 
 % function: [x, t] = myistftfun(stft, wlen, h, wlen)
