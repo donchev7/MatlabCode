@@ -18,7 +18,7 @@ cfg.K = 512; % FFT size
 cfg.N = 128; % frame shift
 cfg.Lp = 1024; % prototype filter length
 %p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
-cfg.p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
+%cfg.p=IterLSDesign(cfg.Lp,cfg.K,cfg.N);
 %cfg.frange = 0:250:8000;
 cfg.frange = linspace(0,cfg.fs/2,cfg.K/2+1)'; % frequency axis
 cfg.k_range = 2*pi*cfg.frange/cfg.c;
@@ -28,15 +28,18 @@ cfg.k_range = 2*pi*cfg.frange/cfg.c;
 for idx_mic = 1:cfg.nmic    
     %get the frequency subbands for each block -> X of dimension (#subbands, #blocks, #microphones)
     %of microphone data
-    X(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.x(:,idx_mic),cfg.K,cfg.N,cfg.p);
+    %X(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.x(:,idx_mic),cfg.K,cfg.N,cfg.p);
+    [X(:,:,idx_mic), F, T] = stft(sig.x(:,idx_mic),512,128,512,cfg.fs);
     %of desired signal components
-    X_des(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.xSrc(:,idx_mic,1),cfg.K,cfg.N,cfg.p);
+    %X_des(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.xSrc(:,idx_mic,1),cfg.K,cfg.N,cfg.p);
+    X_des(:,:,idx_mic) = stft(sig.xSrc(:,idx_mic,1),512,128,512,cfg.fs);
     %of interference+noise
     if cfg.noise_type
         X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3)...
             +sig.xnoise(:,idx_mic), cfg.K,cfg.N,cfg.p);
     else
-        X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3),cfg.K,cfg.N,cfg.p);
+        %X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sum(sig.xSrc(:,idx_mic,2:end),3),cfg.K,cfg.N,cfg.p);
+        X_int(:,:,idx_mic) = stft(sum(sig.xSrc(:,idx_mic,2:end),3),512,128,512,cfg.fs);
     end
 end
 
@@ -53,7 +56,7 @@ for idx_nu = 1:size(X_des,1)
 end
 Pxx = Pxx./size(X,2);
 
-
+sig.Pxx = Pxx;
 %load hrtfs if required
 if strcmp(cfg.design,'hrtf')
     load(cfg.path_hrirs);
@@ -80,7 +83,7 @@ for idx_nu = 1:size(X,1)
                 cosd(cfg.look_elevation)];
             %create steering vector according to van Trees (2.28) for all
             %microphone positions
-            v_k = exp(-1i*kvec.'*[cfg.mic_pos.x; cfg.mic_pos.y; cfg.mic_pos.z]).';
+            v_k(:,idx_nu) = exp(-1i*kvec.'*[cfg.mic_pos.x; cfg.mic_pos.y; cfg.mic_pos.z]).';
         case 'hrtf'
             if idx_nu == 1
                 v_k = HRTF(1,:,cfg.position(1)).';
@@ -92,8 +95,8 @@ for idx_nu = 1:size(X,1)
     %Array Processing
     rho = 0;%0.00001; %regularization constant for diagonal loading
     %estimate filter coefficients
-    W(:,idx_nu) = ((v_k'*inv(Pxx(:,:,idx_nu)+rho*eye(cfg.nmic))) / ...
-        (v_k'*inv(Pxx(:,:,idx_nu)+rho*eye(cfg.nmic))*v_k)).';
+    W(:,idx_nu) = ((v_k(:,idx_nu)'*inv(Pxx(:,:,idx_nu)+rho*eye(cfg.nmic))) / ...
+        (v_k(:,idx_nu)'*inv(Pxx(:,:,idx_nu)+rho*eye(cfg.nmic))*v_k(:,idx_nu))).';
     
     %perform beamforming frequency-band-wise
     Y(idx_nu,:) = W(:,idx_nu)'*squeeze(X(idx_nu,:,:)).';
@@ -102,14 +105,15 @@ for idx_nu = 1:size(X,1)
 end %for idx_nu
 
 %create time-domain output signal
-y = DFTSynRealEntireSignal(Y, cfg.K, cfg.N, cfg.p);
-y_des = DFTSynRealEntireSignal(Y_des, cfg.K, cfg.N, cfg.p);
-y_int = DFTSynRealEntireSignal(Y_int, cfg.K, cfg.N, cfg.p);
-
+y = istft(Y, 128, 512, cfg.fs);
+y_des = istft(Y_des, 128, 512, cfg.fs);
+y_int = istft(Y_int, 128, 512, cfg.fs);
+sig.v_k = v_k;
 %--------------------------------------------------------------------------
 %Set output signal y
 %--------------------------------------------------------------------------
 sig.y = y;
+sig.Y = Y;
 sig.y_des = y_des;
 sig.y_int = y_int;
 %--------------------------------------------------------------------------

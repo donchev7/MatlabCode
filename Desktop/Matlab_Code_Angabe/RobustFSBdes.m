@@ -126,7 +126,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
             load(cfg.path_hrirs);
             local.hrirs = imp_resp;
             %transform them into dft domain
-            local.hrtfs = fft(imp_resp,cfg.srate,1);
+            local.hrtfs = fft(imp_resp,cfg.fs,1);
             %save hrtfs in cfg.G_ext
             local.G_ext = permute(cfg.hrtfs(cfg.frange,cfg.idx_hrtfs,...
                 cfg.angRange.azimuth/5+1),[1,3,2]);
