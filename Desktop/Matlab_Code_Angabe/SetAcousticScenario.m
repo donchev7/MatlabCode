@@ -53,7 +53,7 @@ if strcmp(cfg.RIRtype, 'synthetic')
 %     cfg.synth_room.sloc_cart = zeros(size(cfg.synth_room.sloc, 1), 3);
     
 elseif strcmp(cfg.RIRtype, 'measured')
-    cfg.RIRcond = 'NAO600_4m'; %NAO190_1m -> 190ms,1m, NAO190_2m -> 190ms,2m, NAO190_4m -> 190ms,4m 
+    cfg.RIRcond = 'NAO600_1m'; %NAO190_1m -> 190ms,1m, NAO190_2m -> 190ms,2m, NAO190_4m -> 190ms,4m 
                                 %NAO600_1m -> 600ms,1m, NAO600_2m -> 600ms,2m, NAO600_4m -> 600ms,4m
 else
     error('Invalid choice of the variable cfg.RIRtype\n'); 
@@ -79,7 +79,7 @@ switch cfg.input_type
     case 2 % Read speech source signals and convolve with impulse responses
 
 
-        cfg.path_source  = {'./Data/SourceSigs/test_200.wav',...
+        cfg.path_source  = {'./Data/SourceSigs/test_100.wav',...
                             './Data/SourceSigs/E202A.WAV', ...
                             './Data/SourceSigs/E205A.WAV', ...
                             './Data/SourceSigs/E208A.WAV'};
@@ -151,7 +151,7 @@ switch cfg.input_type
 end % switch cfg.input_type
 
 %signal length in seconds
-cfg.sig_len = 10;    % Choose 0 if the whole signal should be used (if ASR scores need to be evaluated!)
+%cfg.sig_len = 10;    % Choose 0 if the whole signal should be used (if ASR scores need to be evaluated!)
 %, otherwise set the length in seconds
     
 % set source activity (t in [s])
@@ -166,7 +166,7 @@ cfg.activity = [0; 0; 0; 0; 0];
 switch cfg.noise_type
     case 0 % no noise    
     case 1 % white noise
-        cfg.inputsnr = 30; % input SNR in dB
+        cfg.inputsnr = 20; % input SNR in dB
         
     case 2 % noise from files
         cfg.inputsnr = 25; % input SNR in dB

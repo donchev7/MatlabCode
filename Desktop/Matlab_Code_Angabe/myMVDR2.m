@@ -1,8 +1,8 @@
-function W = myMVDR2(Gamma,d0,beamFormer)
+function W = myMVDR2(Gamma,d0,beamFormer,nmic)
 
 switch beamFormer
     case 'DSB'
-        W = d0/cfg.nmic;
+        W = d0/nmic;
     case 'MVDR'
         W = inv(Gamma)*d0/(d0'*inv(Gamma)*d0);
 end
