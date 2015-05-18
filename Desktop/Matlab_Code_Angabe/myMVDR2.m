@@ -4,7 +4,7 @@ switch beamFormer
     case 'DSB'
         W = d0/nmic;
     case 'MVDR'
-        W = inv(Gamma)*d0/(d0'*inv(Gamma)*d0);
+        W = (inv(Gamma)*d0)/(d0'*inv(Gamma)*d0);
 end
 % mue = 10^(-20/10); %regularization constant for diagonal loading;
 % Gamma_const = tril(squeeze(Cnn(idx_nu,:,:)),-1)./(1+mue) + diag(diag(squeeze(Cnn(idx_nu,:,:)))) + ...

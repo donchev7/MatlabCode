@@ -31,10 +31,10 @@ cfg.look_elevation = repmat(90 - atand(0.73/1.1), length(cfg.look_azimuth)); %el
 cfg.des_look_dir.azimuth = cfg.look_azimuth;
 cfg.des_look_dir.elevation = cfg.look_elevation;
 cfg.nsrc = 1;       % Number of sources
-cfg.nmic = 9;       % Number of mics
+cfg.nmic = 5;       % Number of mics
 %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 9 29]; %position of sources, interferers at 40° and 140°
 %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 10 32]; %position of sources, interferers at 45° and 155°
-cfg.position = [37 25 22]; %position of sources, interferers at 30
+cfg.position = [19 25 22]; %position of sources, interferers at 30
 %source must be first defined and than interferer e.x. cfg.position(1) must
 %be the desired source
 cfg.noise_type = 0;
@@ -140,7 +140,7 @@ end
 %End of PSD estimation
 
 for idx_freq=1:size(X,1)
-    beta = (2*cfg.frange(idx_freq))/cfg.c;
+    beta = (2*pi*cfg.frange(idx_freq))/cfg.c;
     Gamma_tmp_cylndrical = besselj(0,beta*cfg.micSpacing); %2D cylindrical noise model
     Gamma_tmp_diffuse = sinc(beta*cfg.micSpacing);
     if strcmp(cfg.beamFormer,'MVDR')
