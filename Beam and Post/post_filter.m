@@ -252,7 +252,7 @@ case 'APES'
     else
         error('Wrong number of output arguments!!')
     end
-case 'MCC03'
+case 'MCCC'
     %**************************************************************
     % Estimation of the postfilter transfer function =>
     % McCowan 2003

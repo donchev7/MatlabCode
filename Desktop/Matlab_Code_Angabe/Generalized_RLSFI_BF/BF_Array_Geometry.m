@@ -20,8 +20,7 @@ function cfg = BF_Array_Geometry(cfg)
                         switch cfg.nmic
                             case 3 %left, right, and center microphone (mics: 1,5, and 9)
                                 %microphone positions always from left (mic 1) to
-                                %right (mic 9)
-                                cfg.mic_pos.z = mic_positions.z(1:3);                               
+                                %right (mic 9)                             
                                 cfg.mic_pos.x = [-7.5e-2 0 7.5e-2];
                                 cfg.mic_pos.y = [-6e-2 0 -6e-2];
                                 cfg.mic_pos.z = [-4e-2 0 -4e-2];                                

@@ -1,10 +1,10 @@
-function [PESQ, FWSEGSNR, ASR] = evaluateScores(ref,y,cfg)
+function [PESQ, FWSEGSNR, ASR] = evaluateScores(ref,y,cfg,sig)
 
 addpath(genpath('tools/calcpesq'));
 addpath('tools/sphinx_eval');
 addpath(genpath('tools/fwsegsnr'));
 
-PESQ = calcpesq(ref(1:cfg.fs*100,1), y(1:cfg.fs*100));
+PESQ = calcpesq(sig.s(1:cfg.fs*100,1), y(1:cfg.fs*100));
 %PESQ = calcpesq(ref, y);
 
 param_fwsegsnr.frame = 0.025; %frame length in ms

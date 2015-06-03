@@ -1,18 +1,17 @@
 function [w,d0] = mvdr(tau,Gamma,f,nr)
 % [w,d0] = mvdr(tau,Gamma,f,nr)
 % Compute weights of MVDR-Beamformer
-% w
-% d0 Weight vector of length K (K ... number of mics)
-% Steering vector
-% tau
-% Gamma
-% f
-% nr Time alignment vector
-% Coherencematrix
-% Frequency in Hz
-% you can choose between the following beamformers
+% w Weight vector of length K (K ... number of mics)
+% d0 Steering vector
+% tau Time alignment vector
+% Gamma Coherencematrix
+% f Frequency in Hz
+% nr % you can choose between the following beamformers
 % 'DSB' ... Delay&Sum-Beamformer
 % 'SDB' ... Superdirective Beamformer
+% 
+% 
+
 
 if nargin <4
     help mvdr;
