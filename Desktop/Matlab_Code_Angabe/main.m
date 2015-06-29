@@ -18,7 +18,7 @@ addpath(genpath('filterbank'));
 % applied)
 addpath(genpath('Generalized_RLSFI_BF'));
 %
-cfg.design = 'hrtf';
+cfg.design = 'freefield';
 cfg.beamFormer = 'MVDR';
 cfg.geometry = 1; %linear array
 cfg.spacing = 0; % 0 = non-uniform array, 1=uniform array;
@@ -56,19 +56,6 @@ cfg.frange=0:cfg.fs/cfg.N:cfg.fs/2;
 cfg.k_range = 2*pi*cfg.frange/cfg.c;
 cfg.angRange.azimuth = 0:5:180;
 frange_ext = 200:100:8000;
-
-% FIR = main_robust_FSBORG(cfg, cfg.look_azimuth, cfg.look_elevation, cfg.design, cfg.wng_limit_db);
-% sig.y = zeros(length(sig.x)+length(FIR)-1,1);
-% sig.ySrc = zeros(length(sig.x)+length(FIR)-1,cfg.nsrc);
-% for idx_channels = 1:cfg.nmic
-%     sig.y  = sig.y + fftfilt(FIR(:,idx_channels), ...
-%         [sig.x(:,idx_channels); zeros(length(FIR)-1,1)]);
-%     
-%     for idx_sources = 1:cfg.nsrc
-%         sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(FIR(:,idx_channels), ...
-%             [sig.xSrc(:,idx_channels,idx_sources); zeros(length(FIR)-1,1)]);
-%     end
-% end
 
 for i=1:length(keys(c))
     cfg.RIRcond = c(num2str(i));
