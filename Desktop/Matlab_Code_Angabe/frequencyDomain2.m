@@ -1,12 +1,14 @@
-function [yrfsb,ydsb, ymvdr,ymvdr_superDirective,ymwf_freeField,ymwf,ycdr]= frequencyDomain2(X,cfg,mue,d_hrtf,d_rir,flt,tau)
-% c=1;
+function [yrfsb,ydsb, ymvdr,ymvdr_superDirective,ymwf_freeField,ymwf]= frequencyDomain2(X,cfg,d_hrtf,d_rir,flt,tau)
 Ydsb=zeros(size(X,1),size(X,2));
 Yrfsb=zeros(size(X,1),size(X,2));
 Ymvdr=zeros(size(X,1),size(X,2));
+Ymvdr_Diffuse=zeros(size(X,1),size(X,2));
+Ymvdr_Cyldircal=zeros(size(X,1),size(X,2));
 Ymvdr_superDirective=zeros(size(X,1),size(X,2));
 Ymwf=zeros(size(X,1),size(X,2));
 Ymwf_freeField=zeros(size(X,1),size(X,2));
-%Ycdr=zeros(size(X,1),size(X,2));
+% Ycdr=zeros(size(X,1),size(X,2));
+ mue = 10^(-cfg.wng_limit_db/10); %mue is used for regularization
 for idx_freq=1:length(cfg.frange)
     beta = (2*pi*cfg.frange(idx_freq))/cfg.c;
     Gamma_tmp_cylndrical = besselj(0,beta*cfg.micSpacing); %2D cylindrical noise model
@@ -26,7 +28,6 @@ for idx_freq=1:length(cfg.frange)
     d=squeeze(d_rir(idx_freq,cfg.position(1),:));
     
     d=d/d(cfg.ref);
-    %sd=max(gammaIso);
     for idx=1:cfg.nmic
         gammaIso(idx,idx)=gammaIso(idx,idx)/max(gammaIso(idx,idx));
     end
@@ -43,7 +44,9 @@ for idx_freq=1:length(cfg.frange)
     %X_int_aligned(idx_freq,:,:)=bsxfun(@times,d0(:,idx_freq)',squeeze(X_int(idx_freq,:,:)));
     Pxx = covarianceEstimate(squeeze(X(idx_freq,:,:)));
     
-    Wmvdr_freeField = myMVDR2(GammaCyldircal,d0,cfg.beamFormer,cfg.nmic);
+   Wmvdr_freeField = myMVDR2(GammaCyldircal,d0,cfg.beamFormer,cfg.nmic);
+     Wmvdr_Diffuse = myMVDR2(GammaDiffuse,d,cfg.beamFormer,cfg.nmic);
+     Wmvdr_GammaCyldrical = myMVDR2(GammaCyldircal,d,cfg.beamFormer,cfg.nmic);
     Wmvdr_superDirective = myMVDR2(GammaDiffuse,d0,cfg.beamFormer,cfg.nmic);
     %Wmvdr_superDirective = filter for freefield 2D cyldirical noise and freefield steering vector d0
     WgammaIso = myMVDR2(gammaIso,d,cfg.beamFormer,cfg.nmic);
@@ -54,23 +57,24 @@ for idx_freq=1:length(cfg.frange)
     %Wmwf as defined in Kuklasinski et. al EQ 5b 
     Wmwf = postFilter(WgammaIso,gammaIso,d,Pxx,cfg.nmic);
     %Conventional MVDR beamformer with covariance matrix of microphone signals as input
-    if cfg.nsrc > 1
-        Wmvdr = myMVDR2(covarianceEstimate(squeeze(X_int(idx_freq,:,:))),d0,cfg.beamFormer,cfg.nmic);
-    else
 
-        Wmvdr = inv(Pxx)*d0/(d0'*inv(Pxx)*d0);%myMVDR2(Pxx,d0,cfg.beamFormer,cfg.nmic);
-    end
+    Wmvdr = myMVDR2(gammaIso,d,cfg.beamFormer,cfg.nmic);
+
     Ymwf_freeField(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmwf_freeField;
-    Ydsb(idx_freq,:) = squeeze(X(idx_freq,:,:))*(d0/cfg.nmic);
+     Ydsb(idx_freq,:) = squeeze(X(idx_freq,:,:))*(d/cfg.nmic);
     Ymwf(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmwf;
-    Ymvdr(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmvdr;
+     Ymvdr(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmvdr;
+     Ymvdr_Diffuse(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmvdr_Diffuse;
+     Ymvdr_Cyldircal(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmvdr_GammaCyldrical;
     Ymvdr_superDirective(idx_freq,:) = squeeze(X(idx_freq,:,:))*Wmvdr_superDirective;
-    %Ycdr(idx_freq,:)=Ydsb(idx_freq,:).*Wcdr(idx_freq,:);
-    Yrfsb(idx_freq,:) = squeeze(X(idx_freq,:,:))*flt.w.RFSB(:,idx_freq);
+%     %Ycdr(idx_freq,:)=Ydsb(idx_freq,:).*Wcdr(idx_freq,:);
+    Yrfsb(idx_freq,:) = squeeze(X(idx_freq,:,:))*flt.w.RFSB2(:,idx_freq);
 
     %Ynull(idx_freq,:) = squeeze(X(idx_freq,:,:))*wNull;
 end
 ymvdr = DFTSynRealEntireSignal(Ymvdr, cfg.N, cfg.K, cfg.p);
+ymvdr_Diffuse = DFTSynRealEntireSignal(Ymvdr_Diffuse, cfg.N, cfg.K, cfg.p);
+ymvdr_Cyldircal = DFTSynRealEntireSignal(Ymvdr_Cyldircal, cfg.N, cfg.K, cfg.p);
 ymvdr_superDirective = DFTSynRealEntireSignal(Ymvdr_superDirective, cfg.N, cfg.K, cfg.p);
 ymwf = DFTSynRealEntireSignal(Ymwf, cfg.N, cfg.K, cfg.p);
 ymwf_freeField = DFTSynRealEntireSignal(Ymwf_freeField, cfg.N, cfg.K, cfg.p);

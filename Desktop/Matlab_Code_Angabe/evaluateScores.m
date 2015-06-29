@@ -13,10 +13,11 @@ param_fwsegsnr.window = @hanning; %window definition, needed for spectrogram
 param_fwsegsnr.numband = 23;
 
 FWSEGSNR=fwsegsnr(y(1:length(ref(:,1))), ref(:,1), cfg.fs, param_fwsegsnr);
+%FWSEGSNR=fwsegsnr(y, ref(1:length(y)), cfg.fs, param_fwsegsnr);
 
-
-test=load('test_100');
-ASR=get_asr_score_longsignal(y, 'test_100', test.endpoints);
+test=load('test_200');
+test.listname = 'test_200';
+ASR=get_asr_score_longsignal(y, 'test_200', test.endpoints);
 
 
 end

@@ -1,8 +1,9 @@
 function CDR = postFilterCDR(Cxx,micspacing,TDOA,cfg)
+%Cxx = 257x22931x10
 % % target signal coherence;
-Css = exp(1i*2*pi*cfg.frange'*TDOA);
-Cnn = besselj(0,2*pi*cfg.frange'*micspacing/cfg.c);
-Css = bsxfun(@times, ones(size(Cxx)), Css); 
+Css = exp(1i*2*pi*cfg.frange'*TDOA); %257x10
+Cnn = besselj(0,2*pi*cfg.frange'*micspacing/cfg.c); %257x10
+Css = bsxfun(@times, ones(size(Cxx)), Css); %Cxx 257x22931x10
 Cnn = bsxfun(@times, ones(size(Cxx)), Cnn); 
 % limit the magnitude of Cxx to prevent numerical problems
 magnitude_threshold = 1-1e-10;

@@ -1,213 +1,115 @@
-% main function
+%main function
+%------------------------------------------------------------------
+% Initialization
+%------------------------------------------------------------------
+clear;
+close all;
 
-%clc;
-% clear;
-% close all;
-% 
-% %------------------------------------------------------------------
-% % Initialization
-% %------------------------------------------------------------------
-% cfg = [];
-% sig = [];
-% flt = [];
-% 
-% 
-% %add path of filterbank m-files (required if beamformer design is
-% % applied)
-% addpath(genpath('filterbank'));
-% 
-% %add path of beamformer m-files (required if FSB beamformer design is
-% % applied)
-% addpath(genpath('Generalized_RLSFI_BF'));
-% % 
-% cfg.design = 'freefield';
-% cfg.beamFormer = 'MVDR';
-% cfg.geometry = 1; %linear array
-% cfg.spacing = 0; % 0 = non-uniform array, 1=uniform array;
-% % cfg.design = 'hrtf';
-% cfg.wng_limit_db = -15;
-% cfg.alpha = 0.68; %smoothing factor
-% cfg.look_azimuth = 90; %azimuth angle
-% cfg.look_elevation = repmat(90 - atand(0.73/1.1), length(cfg.look_azimuth)); %elevation
-% cfg.des_look_dir.azimuth = cfg.look_azimuth;
-% cfg.des_look_dir.elevation = cfg.look_elevation;
-% cfg.nsrc = 1;       % Number of sources
-% cfg.nmic = 5;       % Number of mics
-% %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 9 29]; %position of sources, interferers at 40° and 140°
-% %             cfg.position = [find(cfg.theta_vec==cfg.look_azimuth) 10 32]; %position of sources, interferers at 45° and 155°
-% cfg.position = [19 25 22]; %position of sources, interferers at 30
-% %source must be first defined and than interferer e.x. cfg.position(1) must
-% %be the desired source
-% cfg.noise_type = 0;
-% % noise implemented in SetAcousticScenario.m
-%     % 0 = no noise
-%     % 1 = white noise
-%     % 2 = noise from files
-%     % 3 = generated diffuse noise
-% cfg.sig_len = 0;    % Choose 0 if the whole signal should be used (if ASR scores need to be evaluated!)
-% %------------------------------------------------------------------
-% % Set Acoustical scenario parameters (parameters are stored in cfg
-% % structure
-% %------------------------------------------------------------------
-%  cfg = SetAcousticScenario(cfg);
-% cfg = BF_Array_Geometry(cfg);
-% %------------------------------------------------------------------
-% % Create microphone signals (signals are stored in sig structure, RIRs in
-% % flt structure
-% %------------------------------------------------------------------
-%  [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
-% 
-% %------------------------------------------------------------------
-% %% filterbank initialization
-% cfg.c = 342; %speed of sound in air
-% cfg.fs = 16000;
-% % cfg.N = 512; % FFT points
-% % cfg.K = 128; % frame shift
-% % cfg.wlen = 256; %window length
-% cfg.N = 512; % FFT size
+cfg = [];
+sig = [];
+flt = [];
+
+
+%add path of filterbank m-files (required if beamformer design is
+% applied)
+addpath(genpath('filterbank'));
+
+%add path of beamformer m-files (required if FSB beamformer design is
+% applied)
+addpath(genpath('Generalized_RLSFI_BF'));
+%
+cfg.design = 'hrtf';
+cfg.beamFormer = 'MVDR';
+cfg.geometry = 1; %linear array
+cfg.spacing = 0; % 0 = non-uniform array, 1=uniform array;
+% cfg.design = 'hrtf';
+cfg.wng_limit_db = -15;
+cfg.alpha = 0.68; %smoothing factor
+cfg.nmic=5;
+cfg.sig_len = 0;
+
+c = containers.Map;
+%c('1') = 'NAO190_1m';
+c('1') = 'NAO190_2m';
+c('2') = 'NAO190_4m';
+c('3') ='NAO600_1m';
+c('4') ='NAO600_2m';
+c('5') ='NAO600_4m';
+
+source=0:30:180;
+interferer=[45 165];
+%------------------------------------------------------------------
+%% filterbank initialization
+cfg.c = 342; %speed of sound in air
+cfg.fs = 16000;
+% cfg.N = 512; % FFT points
 % cfg.K = 128; % frame shift
-% cfg.Lp = 1024; % prototype filter length
-% %p2=IterLSDesign(cfg.Lp,cfg.N,cfg.K);
-% load('/filterbank/prototype_K512_N128_Lp1024.mat');
-% cfg.p = p; clear p;
-% %cfg.frange = linspace(0,cfg.fs/2,cfg.N/2+1)';
-% cfg.frange=0:cfg.fs/cfg.N:cfg.fs/2;
-% cfg.k_range = 2*pi*cfg.frange/cfg.c;
-% cfg.angRange.azimuth = [(-180):5:(180)];
-% cfg.angRange.elevation = repmat(cfg.look_elevation,size(cfg.angRange.azimuth));
-% %------------------------------------------------------------------
-% 
-% 
-% %------------------------------------------------------------------------------
-% 
-% %------------------------------------------------------------------
-% %perform beamformer design (of robust FSB)
-% %------------------------------------------------------------------
-%  [flt.w.RFSB, cfg, steerV, realWNG_dB] = RobustFSBdes(cfg);
-% 
-% %flt.w.RFSBFIR = main_robust_FSBORG(cfg, cfg.look_azimuth, cfg.look_elevation, cfg.design, cfg.wng_limit_db);
-% 
-% 
-% % ------------------------------------------------------------------
-% % Create microphone signals (signals are stored in sig structure) at
-% % beamformer output signal
-% % ------------------------------------------------------------------
-% % sig.y.RFSBFIR = zeros(length(sig.x)+length(flt.w.RFSBFIR)-1,1);
-% % %ySrc = number of source signals filtered with w - signal at beamer output
-% % %sigu = both sources mixed and filtered with w - signal at beamer output
-% % sig.ySrc = zeros(length(sig.x)+length(flt.w.RFSBFIR)-1,cfg.nsrc); 
-% %  for idx_channels = 1:cfg.nmic
-% %      sig.y.RFSBFIR  = sig.y.RFSBFIR + fftfilt(flt.w.RFSBFIR(:,idx_channels),[sig.x(:,idx_channels); zeros(length(flt.w.RFSBFIR)-1,1)]);
-% %      
-% % %      for idx_sources = 1:cfg.nsrc
-% % %          sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(flt.w.RFSBFIR(:,idx_channels), ...
-% % %              [sig.xSrc(:,idx_channels,idx_sources); zeros(length(flt.w.RFSBFIR)-1,1)]);
-% % %      end
-% %  end
-% 
-% % %------------------------------------------------------------------
-% % % Potential place for postfilter
-% % %------------------------------------------------------------------
-% 
-  [d_hrtf, d_rir] = GetConstants(cfg,flt);
-% 
-% 
-% micPosition = [cfg.mic_pos.x; cfg.mic_pos.y; cfg.mic_pos.z].';
-% cfg.micSpacing = micSpacingCalculation(micPosition);
-% 
-% mue = 10^(-cfg.wng_limit_db/10); %mue is used for regularization
-% %EQ 2.21 Optimum Array Processing et. L. Van Trees
-% tau = micPosition*[sind(cfg.look_elevation)*cosd(cfg.look_azimuth); sind(cfg.look_elevation)*sind(cfg.look_azimuth); cosd(cfg.look_elevation)];
-% %tauInt = micPosition*[sind(cfg.look_elevation)*cosd(cfg.position(2)*5-5); sind(cfg.look_elevation)*sind(cfg.position(2)*5-5); cosd(cfg.look_elevation)];
-% for idx_mic=1:cfg.nmic
-%  X(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.x(:,idx_mic),cfg.N,cfg.K,cfg.p);
-%  if cfg.nsrc >1
-%     X_int(:,:,idx_mic) = DFTAnaRealEntireSignal(sig.xSrc(:,idx_mic,2:end),cfg.N,cfg.K,cfg.p);
-%  end
-% end
-% 
-% % Estimating the PSDs with recursive averaging
-% % counter=0;
-% % for m = 1:(cfg.nmic-1)
-% %     for n = (m+1):cfg.nmic
-% %         counter = counter + 1;
-% %         %Thi_Ycpsd(:,:,counter) = Recursive_PSD_estimation(X_int(:,:,m),X_int(:,:,n),0.76);
-% %         Thi_Ycpsd(:,:,counter) = estimate_cpsd(X(:,:,m),X(:,:,n),0.76);
-% %     end
-% % end
-% % Thi_Ypsd = zeros(size(X,1),size(X,2),size(X,3));
-% % for m=1:cfg.nmic
-% %     Thi_Ypsd(:,:,m) = estimate_psd(X(:,:,m),0.1);
-% %     %Thi_Ypsd(:,:,m) = Recursive_PSD_estimation(X(:,:,m),0.68);
-% % end
-% % End of PSD estimation
-% % 
-   [yrfsb,ydsb,ymvdr,ymvdr_superDirective,ymwf_freeField,ymwf]= frequencyDomain2(X,cfg,mue,d_hrtf,d_rir,flt,tau);
-% 
-% CDR = zeros(size(X,1),size(X,2));
-% Pxx = estimate_psd(X,cfg.alpha);
-% counter=0;
-% for m = 1:(cfg.nmic-1)
-%     for n = (m+1):cfg.nmic
-%         counter = counter + 1;
-%         TDOA = abs(finddelay(sig.x(:,m),sig.x(:,n)))/cfg.fs;
-%         Cxx = estimate_cpsd(X(:,:,m),X(:,:,n),cfg.alpha)./sqrt(Pxx(:,:,m).*Pxx(:,:,n));
-%         CDR = CDR + postFilterCDR(Cxx,cfg.micSpacing(m,n),TDOA,cfg);
+% cfg.wlen = 256; %window length
+cfg.N = 512; % FFT size
+cfg.K = 128; % frame shift
+cfg.Lp = 1024; % prototype filter length
+%p2=IterLSDesign(cfg.Lp,cfg.N,cfg.K);
+load('/filterbank/prototype_K512_N128_Lp1024.mat');
+cfg.p = p; clear p;
+%cfg.frange = linspace(0,cfg.fs/2,cfg.N/2+1)';
+cfg.frange=0:cfg.fs/cfg.N:cfg.fs/2;
+cfg.k_range = 2*pi*cfg.frange/cfg.c;
+cfg.angRange.azimuth = 0:5:180;
+frange_ext = 200:100:8000;
+
+% FIR = main_robust_FSBORG(cfg, cfg.look_azimuth, cfg.look_elevation, cfg.design, cfg.wng_limit_db);
+% sig.y = zeros(length(sig.x)+length(FIR)-1,1);
+% sig.ySrc = zeros(length(sig.x)+length(FIR)-1,cfg.nsrc);
+% for idx_channels = 1:cfg.nmic
+%     sig.y  = sig.y + fftfilt(FIR(:,idx_channels), ...
+%         [sig.x(:,idx_channels); zeros(length(FIR)-1,1)]);
+%     
+%     for idx_sources = 1:cfg.nsrc
+%         sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(FIR(:,idx_channels), ...
+%             [sig.xSrc(:,idx_channels,idx_sources); zeros(length(FIR)-1,1)]);
 %     end
 % end
-% CDR = CDR./counter;
-% mue = 1.3;     % noise overestimation factor
-% Gmin = 0.1; % minimum Gain
-% W = max(1 - (mue./(CDR + 1)).^0.5, 0).^2;
-% W = max(W,0);
-% W = max(sqrt(W),Gmin);
-% W = min(W,1);
-% Y = sqrt(mean(abs(X).^2,3)) .* exp(1j*angle(X(:,:,cfg.ref)));
-% Ycdr = W.*Y;
-% Yinput = X(:,:,cfg.ref);
-% % % ymvdr = DFTSynRealEntireSignal(Ymvdr, cfg.N, cfg.K, cfg.p);
-% % % ymvdr_superDirective = DFTSynRealEntireSignal(Ymvdr_superDirective, cfg.N, cfg.K, cfg.p);
-% % % ymwf = DFTSynRealEntireSignal(Ymwf, cfg.N, cfg.K, cfg.p);
-% % % ymwf_freeField = DFTSynRealEntireSignal(Ymwf_freeField, cfg.N, cfg.K, cfg.p);
-% % % yrfsb = DFTSynRealEntireSignal(Yrfsb, cfg.N, cfg.K, cfg.p);
-% % % yDSB = DFTSynRealEntireSignal(Ydsb, cfg.N, cfg.K, cfg.p);
-% yinput = DFTSynRealEntireSignal(Yinput, cfg.N, cfg.K, cfg.p);
-% ycdr = DFTSynRealEntireSignal(Ycdr, cfg.N, cfg.K, cfg.p);
-% % %ynull = DFTSynRealEntireSignal(Ynull, cfg.N, cfg.K, cfg.p);
-% % 
-% % 
-% % % % ------------------------------------------------------------------
-% % % % BEAMPATTERN for MVDR and RFSB
-% % % % beampattern(steerV,W,flt.w.RFSB,cfg.angRange.azimuth,cfg.frange)
-% % % % 
-% % % % ------------------------------------------------------------------
-% % % 
-% % % 
-% % % % y_sv = sim_system(sig.x(:,:),0,cfg.look_azimuth,'SDB',-10,'GMCC',0,0,0.68,micPosition,512,4,16000,200,7600);
-% % % 
-% % % % ------------------------------------------------------------------
-% % % % Evaluating the fwsegsnr, PESQ and ASR scores
-% % % % ------------------------------------------------------------------
-% % % 
-% [y_rfsb_pesq, y_rfsb_fwsegsnr, y_rfsb_ASR]=evaluateScores(sig.x(:,cfg.ref),yrfsb,cfg,sig);
-% [y_mvdr_pesq, y_mvdr_fwsegsnr, y_mvdr_ASR]=evaluateScores(sig.x(:,cfg.ref),ymvdr,cfg,sig);
-% [y_mvdrSuperDirective_pesq, y_mvdrSuperDirectiv_fwsegsnr, y_mvdrSuperDirectiv_ASR]=evaluateScores(sig.x(:,cfg.ref),ymvdr_superDirective,cfg,sig);
-% [y_mwfFreeField_pesq, y_mwfFreeField_fwsegsnr, y_mwfFreeField_ASR]=evaluateScores(sig.x(:,cfg.ref),ymwf_freeField,cfg,sig);
-[y_mwf_pesq, y_mwf_fwsegsnr, y_mwf_ASR]=evaluateScores(sig.x(:,cfg.ref),ymwf,cfg,sig);
-% [y_cdr_pesq, y_cdr_fwsegsnr, y_cdr_ASR]=evaluateScores(sig.x(:,cfg.ref),ycdr,cfg,sig);
 
-% [pesqDSB, fwsegsnrDSB, asrDSB]=evaluateScores(sig.x(:,cfg.ref),ydsb,cfg,sig);
-% [pesqInput, fwsegsnrInput, asrInput]=evaluateScores(sig.x(:,cfg.ref),yinput,cfg,sig);
+for i=1:length(keys(c))
+    cfg.RIRcond = c(num2str(i));
+    for j=1:length(source)
+        cfg.look_azimuth = source(j);
+        cfg.look_elevation = repmat(90 - atand(0.73/1.1), length(cfg.look_azimuth));
+        cfg.angRange.elevation = repmat(cfg.look_elevation,size(cfg.angRange.azimuth));
+        cfg.des_look_dir.azimuth = cfg.look_azimuth;
+        cfg.des_look_dir.elevation = cfg.look_elevation;
+        cfg.position =source(j)/5 + 1;
+        cfg.nsrc=1;
+        cfg.noise_type=0;
+        cfg = SetAcousticScenario(cfg);
+        [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
+        cfg = BF_Array_Geometry(cfg);
+        [flt.w.RFSB, cfg, steerV, realWNG_dB] = RobustFSBdes(cfg);
+        flt.w.RFSB2 = interpolateFrequencies(frange_ext,cfg,flt);
+        RunSimulation(cfg,sig,flt);
+        for k=1:length(interferer)
+            if k==1
+                cfg.nsrc = 2; 
+                cfg.position =[source(j)/5+1 interferer(k)/5+1];
+                [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
+                RunSimulation(cfg,sig,flt);
+            else
+                cfg.nsrc = 3; 
+                cfg.position =[source(j)/5+1 interferer(k-1)/5+1 interferer(k)/5+1];
+                [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
+                RunSimulation(cfg,sig,flt);
+            end
+        end
+        cfg.nsrc = 1; 
+        cfg.noise_type = 1;
+        cfg = SetAcousticScenario(cfg);
+        [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
+        RunSimulation(cfg,sig,flt);
+        cfg.nsrc = 2;
+        cfg.position =[source(j)/5+1 interferer(1)/5+1];
+        [cfg,sig,flt] = LoadMicInputs(cfg,sig,flt);
+        RunSimulation(cfg,sig,flt);
+        fprintf('%s Source %g \n',cfg.RIRcond,source(j));
+    end
+end
 
-fprintf('\n');
-fprintf('\n');
-fprintf('                    |----PESQ scores----|-----FwSegSNR----|----ASR----------------\n');
-fprintf('           RFSB     |      %g        |      %.2f      |    %g             \n',y_rfsb_pesq,y_rfsb_fwsegsnr,y_rfsb_ASR);
-fprintf('           DSB      |      %g        |      %.2f      |    %g             \n',pesqDSB,fwsegsnrDSB,asrDSB);
-fprintf('           MVDR     |      %g        |      %.2f      |    %g             \n',y_mvdr_pesq,y_mvdr_fwsegsnr,y_mvdr_ASR);
-fprintf('MVDR_SuperDirective |      %g        |      %.2f      |    %g             \n',y_mvdrSuperDirective_pesq,y_mvdrSuperDirectiv_fwsegsnr,y_mvdrSuperDirectiv_ASR);
-fprintf('MVDR+MWF_FreeField  |      %g        |      %.2f      |    %g             \n',y_mwfFreeField_pesq,y_mwfFreeField_fwsegsnr,y_mwfFreeField_ASR);
-fprintf('   MVDR +  MWF      |      %g        |      %.2f      |    %g             \n',y_mwf_pesq,y_mwf_fwsegsnr,y_mwf_ASR);
-fprintf('   CDR Prop 2       |      %g        |      %.2f      |    %g             \n',y_cdr_pesq,y_cdr_fwsegsnr,y_cdr_ASR);
-fprintf('   Unprocessed      |      %g        |      %.2f      |    %g             \n',pesqInput,fwsegsnrInput,asrInput);
-fprintf('----------------------------------------------------------------------------------\n');

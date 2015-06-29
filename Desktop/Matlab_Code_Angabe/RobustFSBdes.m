@@ -21,6 +21,27 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
         cfg.path_hrirs = 'data/HRIR_NAO_LRC_az_0_355_16kHz.mat';
     end
     %----------------------------------------------------------------------
+    % specify beamforming frequency range
+    local.fstep = 100; % frequency steps between 'sampling points' of set of 
+                     % discrete frequencies used to design the filter weights
+    %
+    % lower and upper limit in order to create extended frequency range
+    local.lfreq_lim = 100; %lower limit
+    local.hfreq_lim = 200; %to create higher limit
+    %
+    % set of frequencies used to design the filter weights
+    %Note: Upper Bound + cfg.hfreq_lim <= cfg.srate, otherwise fir2 (below)
+    %won't work
+    local.frange = 300:local.fstep:(cfg.fs/2 - local.hfreq_lim);
+    %
+    % extended frequency range for computations: extends beamforming frequency range 
+    % computation in order to ensure a flat response across entire frequency range!
+    local.frange_ext = (local.frange(1)-local.lfreq_lim):local.fstep:(local.frange(end)+local.hfreq_lim); 
+    %
+    local.k_range_ext = 2*pi*local.frange_ext/cfg.c; % wavenumber (corresponding to extended computation frequency range)
+    local.k_range = 2*pi*local.frange/cfg.c; % wavenumber (corresponding to beamformer frequency range)
+    %        
+    
     local.WNG_lim = 10*log10(cfg.nmic); %limit of WNG
     if (cfg.wng_limit_db > local.WNG_lim)
         disp(' ')
@@ -35,7 +56,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
     % directions (for simple FSB nmbr_look_dir =1)
     %----------------------------------------------------------------------
     % Initialisation of geometry dependent parameters        
-    cfg = BF_Array_Geometry(cfg);
+    %cfg = BF_Array_Geometry(cfg);
     
     %%
     %--------------------------------------------------------------
@@ -111,10 +132,10 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
                 %x_mic: position vector of idx_micPos-th microphone
                 mic_position = [cfg.mic_pos.x(idx_micPos); cfg.mic_pos.y(idx_micPos); cfg.mic_pos.z(idx_micPos)];
                 %compute steering vectors and store them in cfg.G_ext
-                for idx_frequency = 1:length(cfg.k_range)
+                for idx_frequency = 1:length(local.k_range_ext)
                     %k_vec: wavevectors for current frequency i_frequency
                     %and current microphone with respect to all source positions
-                    k_vec = - cfg.k_range(idx_frequency) * [sind(cfg.angRange.elevation).*cosd(cfg.angRange.azimuth); sind(cfg.angRange.elevation).*sind(cfg.angRange.azimuth); cosd(cfg.angRange.elevation)];
+                    k_vec = - local.k_range_ext(idx_frequency) * [sind(cfg.angRange.elevation).*cosd(cfg.angRange.azimuth); sind(cfg.angRange.elevation).*sind(cfg.angRange.azimuth); cosd(cfg.angRange.elevation)];
                     %save steering vectors in cfg.G_ext
                     % same as D(f,æ) eq. 30 Mic. Arrays tut
                     local.G_ext(idx_frequency,:,idx_micPos) = exp(-1i*k_vec.'*mic_position);
@@ -128,7 +149,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
             %transform them into dft domain
             local.hrtfs = fft(imp_resp,cfg.fs,1);
             %save hrtfs in cfg.G_ext
-            local.G_ext = permute(cfg.hrtfs(cfg.frange,cfg.idx_hrtfs,...
+            local.G_ext = permute(local.hrtfs(local.frange_ext,cfg.idx_hrtfs,...
                 cfg.angRange.azimuth/5+1),[1,3,2]);
     end
     %%
@@ -136,7 +157,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
     %----------------------------------------------------------------------
     % Initialisation of look direction vector            
     local = InitLookDirVec(cfg,local);
-    N_f_bins = length(cfg.k_range);
+    N_f_bins = length(local.k_range);
     %cfg.calG (\mathcal{G} in [Mabande et al, 2010]) includes the product 
     %G(\omega_p)*D_i of Eq. (5) for each (design-) frequency \omega_p
     %stacked in vertical direction for each prototype look direction
@@ -148,7 +169,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
     %this product is computed for every (design-) frequency
     G_D = NaN(N_f_bins, 1, length(local.desResponse), cfg.nmic);
     %for-loop over each (design-) frequency
-    for idx_frequency = 1:length(cfg.frange)     
+    for idx_frequency = 1:length(local.frange_ext)     
 		tmp3 = [];    
         % calculation of G_D at frequency \omega_p of dimension [theta_resolution,Num_mics*(P+1)]
         for idx_look_dir = 1:cfg.nmbr_look_dir 
@@ -188,7 +209,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
     % design frequency range cfg.frange_ext
     flt.w_opt = NaN(cfg.nmic,N_f_bins);
     %for loop over each (design-) frequency
-    for idx_frequency=1:length(cfg.k_range)
+    for idx_frequency=1:length(local.k_range_ext)
         
         % ai_Di will include the product a^T_i(\omega_p)*D_i of dimension [1, N(P+1)]
         % on each row and is required for the distortionless constraint
@@ -257,7 +278,7 @@ function [fir_imp_resp, cfg, steerVector, realWNG_dB] = ...
 %                       WNG calculations                              %
 %---------------------------------------------------------------------
 local.plot_LookDir = 1;
-for idx_freq=1:length(cfg.frange) 
+for idx_freq=1:length(local.frange_ext) 
     % Steering Vector of dimension [#Microphones, 1]
     d = squeeze(G_D(idx_freq,local.plot_LookDir, cfg.angRange.azimuth == cfg.des_look_dir.azimuth(local.plot_LookDir),:)); 
     % theoretical WNG (computed with optimum filter coefficients
