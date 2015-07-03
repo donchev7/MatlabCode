@@ -21,13 +21,15 @@ for idx_freq=1:length(cfg.frange)
         %v_k EQ 2.28 Optimum Array Processing et. L. Van Trees
         d0 = exp(-1i*k_vec);
     end
-    gammaIso = covarianceEstimate(squeeze(d_hrtf(idx_freq,:,:)));
-    d=squeeze(d_rir(idx_freq,cfg.position(1),:));
     
+    d=squeeze(d_rir(idx_freq,cfg.position(1),:));
     d=d/d(cfg.ref);
+    
+    gammaIso = covarianceEstimate(squeeze(d_hrtf(idx_freq,:,:)));
     for idx=1:cfg.nmic
         gammaIso(idx,idx)=gammaIso(idx,idx)/max(gammaIso(idx,idx));
     end
+    
     Pxx = covarianceEstimate(squeeze(X(idx_freq,:,:)));
     
     if strcmp(cfg.design, 'freefield')

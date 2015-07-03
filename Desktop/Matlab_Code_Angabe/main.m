@@ -18,7 +18,7 @@ addpath(genpath('filterbank'));
 % applied)
 addpath(genpath('Generalized_RLSFI_BF'));
 %
-cfg.design = 'freefield';
+cfg.design = 'hrtf';
 cfg.beamFormer = 'MVDR';
 cfg.geometry = 1; %linear array
 cfg.spacing = 0; % 0 = non-uniform array, 1=uniform array;
@@ -29,12 +29,12 @@ cfg.nmic=5;
 cfg.sig_len = 0;
 
 c = containers.Map;
-%c('1') = 'NAO190_1m';
-c('1') = 'NAO190_2m';
-c('2') = 'NAO190_4m';
+c('1') = 'NAO190_1m';
+c('2') = 'NAO190_2m';
+%c('3') = 'NAO190_4m';
 c('3') ='NAO600_1m';
 c('4') ='NAO600_2m';
-c('5') ='NAO600_4m';
+%c('4') ='NAO600_4m';
 
 source=0:30:180;
 interferer=[45 165];

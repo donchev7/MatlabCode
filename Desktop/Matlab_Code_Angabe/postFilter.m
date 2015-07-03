@@ -6,5 +6,5 @@ V = 1/(nmic-1) * trace((eye(nmic,nmic)-d0*W')*Thi_Y*inv(Gamma));%EQ (7a)
 Vo = V/(d0'*inv(Gamma)*d0);
 S = W'*(Thi_Y-V*Gamma)*W;%EQ (7b)
 
-Wmwf = (S/(S+Vo))*W; %EQ (5b)
+Wmwf = (S/(S+Vo)); %EQ (5b)
 end

@@ -24,15 +24,16 @@ Yrfsb=zeros(size(X,1),size(X,2));
 Ymvdr=zeros(size(X,1),size(X,2));
 Ymwf=zeros(size(X,1),size(X,2));
 
-for k=10:10:45800
-    if k==10
-    [Yrfsb(:,1:k),Ydsb(:,1:k), Ymvdr(:,1:k),Ymwf(:,1:k)] = frequencyDomain(X(:,1:k,:),cfg,d_hrtf,d_rir,flt,tau);
+% rounder = mod(size(X,2),10);
+% zero_padd = 10-rounder;
+% X(:,:,1) = [X(:,:,1); zeros(zero_padd,1)];
+% Length = size(X,2)+zero_padd;
+
+for k=8:8:size(X,2)
+    if k==8
+        [Yrfsb(:,1:k),Ydsb(:,1:k), Ymvdr(:,1:k),Ymwf(:,1:k)] = frequencyDomain(X(:,1:k,:),cfg,d_hrtf,d_rir,flt,tau);
     else
-        if k==45800
-            [Yrfsb(:,k-10:45799),Ydsb(:,k-10:45799), Ymvdr(:,k-10:45799),Ymwf(:,k-10:45799)] = frequencyDomain(X(:,k-10:45799,:),cfg,d_hrtf,d_rir,flt,tau);
-        else
-            [Yrfsb(:,k-10:k),Ydsb(:,k-10:k), Ymvdr(:,k-10:k),Ymwf(:,k-10:k)] = frequencyDomain(X(:,k-10:k,:),cfg,d_hrtf,d_rir,flt,tau);
-        end
+        [Yrfsb(:,k-8:k),Ydsb(:,k-8:k), Ymvdr(:,k-8:k),Ymwf(:,k-8:k)] = frequencyDomain(X(:,k-8:k,:),cfg,d_hrtf,d_rir,flt,tau);
     end
 end
 Yinput = X(:,:,cfg.ref);
@@ -60,7 +61,10 @@ yinput = DFTSynRealEntireSignal(Yinput, cfg.N, cfg.K, cfg.p);
 % Ycdr = W.*Y;
 %ycdr = DFTSynRealEntireSignal(Ycdr, cfg.N, cfg.K, cfg.p);
 
-
+ymvdr = DFTSynRealEntireSignal(Ymvdr, cfg.N, cfg.K, cfg.p);
+ymwf = DFTSynRealEntireSignal(Ymwf, cfg.N, cfg.K, cfg.p);
+yrfsb = DFTSynRealEntireSignal(Yrfsb, cfg.N, cfg.K, cfg.p);
+ydsb = DFTSynRealEntireSignal(Ydsb, cfg.N, cfg.K, cfg.p);
 
 [y_rfsb_pesq, y_rfsb_fwsegsnr, y_rfsb_ASR]=evaluateScores(sig.x(:,cfg.ref),yrfsb,cfg,sig);
 [pesqDSB, fwsegsnrDSB, asrDSB]=evaluateScores(sig.x(:,cfg.ref),ydsb,cfg,sig);
