@@ -1,0 +1,15 @@
+function interpolateFrequencies(frange_ext,cfg)
+    for idx_freq=1:length(frange_ext)
+        if(idx_freq) >= 2
+            k_new=find(cfg.frange <= frange_ext(idx_freq));
+            for j=1:length(k)
+                k_new(j)=[];
+            end
+            newW(k_new) = frange_ext(idx_freq);
+            k=find(cfg.frange <= frange_ext(idx_freq));
+        else
+        k=find(cfg.frange <= frange_ext(idx_freq));
+        newW(k) = frange_ext(idx_freq);
+        end
+    end
+end

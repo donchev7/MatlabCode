@@ -1,0 +1,17 @@
+[flt.w.RFSB, flt.w.FIR, cfg, steerV, realWNG_dB] = RobustFSBdes(cfg);
+
+% ------------------------------------------------------------------
+% Create microphone signals (signals are stored in sig structure) at
+% beamformer output signal
+% ------------------------------------------------------------------
+sig.y = zeros(length(sig.x)+length(flt.w.FIR)-1,1);
+sig.ySrc = zeros(length(sig.x)+length(flt.w.FIR)-1,cfg.nsrc);
+for idx_channels = 1:cfg.nmic
+    sig.y  = sig.y + fftfilt(flt.w.FIR(:,idx_channels), ...
+        [sig.x(:,idx_channels); zeros(length(flt.w.FIR)-1,1)]);
+    
+    for idx_sources = 1:cfg.nsrc
+        sig.ySrc(:,idx_sources) = sig.ySrc(:,idx_sources) + fftfilt(flt.w.FIR(:,idx_channels), ...
+            [sig.xSrc(:,idx_channels,idx_sources); zeros(length(flt.w.FIR)-1,1)]);
+    end
+end
